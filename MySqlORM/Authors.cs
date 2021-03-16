@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace MySqlORM
 {
-    public class Issuer
+    public class Authors
     {
+        public int ID { get; set; }
+        public int AuthorID { get; set; }
+        public int BookID { get; set; }
     }
 }

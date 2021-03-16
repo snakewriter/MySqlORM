@@ -11,14 +11,38 @@ namespace MySqlORM
         static void Main(string[] args)
         {
             Type bookType = typeof(BookStore.Models.Book);
-            var props = bookType.GetProperties();
-            foreach (var prop in props)
+
+
+            var authorConnector = new MySqlCrudConnector<Authors>()
             {
-                Console.WriteLine(prop.Name);
-            }
+                TableName = "authors_books",
+                ConnectionString = "server=localhost;user id=root;database=book_store"
+            };
+
+            var connector = new MySqlCrudConnector<BookStore.Models.Book>()
+            {
+                TableName = "books",
+                ConnectionString = "server=localhost;user id=root;database=book_store"
+            };
+            connector.Relations.Add("Authors", authorConnector);
+
+            connector.OnErrorRaise += Connector_OnErrorRaise;
+            var book = new BookStore.Models.Book()
+            {
+                Title = "Война и мир",
+                Price = 300,
+                Authors = new Authors() { AuthorID = 1 }
+            };
+
+            connector.CreateItem(book);
 
 
             Console.ReadKey();
+        }
+
+        private static void Connector_OnErrorRaise(string errorText)
+        {
+            Console.WriteLine(errorText);
         }
     }
 }

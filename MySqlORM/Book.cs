@@ -12,12 +12,10 @@ namespace BookStore.Models
 
         public string Title { get; set; }
 
-        public string Author { get; set; }
-
-        public string Category { get; set; }
+        //public string Category { get; set; }
 
         public float Price { get; set; }
 
-        public Issuer Issuer { get; set; }
+        public Authors Authors { get; set; }
     }
 }
