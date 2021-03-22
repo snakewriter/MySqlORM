@@ -9,13 +9,9 @@ namespace MySqlORM
     public interface IMySqlConnector
     {
         string TableName { get; set; }
-
         string ConnectionString { get; set; }
-
         Dictionary<string, IMySqlConnector> Relations { get; set; }
-
         event Action<string> OnErrorRaise;
-
 
         void CreateItem(object item);
     }

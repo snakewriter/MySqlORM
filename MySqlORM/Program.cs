@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BookStore.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,33 +9,46 @@ namespace MySqlORM
 {
     class Program
     {
+        static MySqlRelation abConnector = new MySqlRelation(typeof(AuthorBookRelation))
+        {
+            TableName = "authors_books"
+        };
+        static MySqlInsertConnector aConnector = new MySqlInsertConnector(typeof(Author))
+        {
+            TableName = "authors"
+        };
+        static MySqlInsertConnector bookConnector = new MySqlInsertConnector(typeof(Book))
+        {
+            TableName = "books"
+        };
+
+
         static void Main(string[] args)
         {
-            Type bookType = typeof(BookStore.Models.Book);
+            MySqlConnectorBase.ConnectionString = 
+                "server=localhost;" +
+                "user id=root;" +
+                "database=book_store";
+            MySqlConnectorBase.OnErrorRaise += Connector_OnErrorRaise;
 
+            abConnector.RelationProperty = (b) => { return ((Book)b).Authors; };
+            abConnector.TargetSourcePropsMap.Add("AuthorID", "FOREIGN.ID");
+            abConnector.TargetSourcePropsMap.Add("BookID", "PARENT.ID");
+            bookConnector.Relations.Add(abConnector);
 
-            var authorConnector = new MySqlCrudConnector<Authors>()
+            var book = new Book()
             {
-                TableName = "authors_books",
-                ConnectionString = "server=localhost;user id=root;database=book_store"
-            };
-
-            var connector = new MySqlCrudConnector<BookStore.Models.Book>()
-            {
-                TableName = "books",
-                ConnectionString = "server=localhost;user id=root;database=book_store"
-            };
-            connector.Relations.Add("Authors", authorConnector);
-
-            connector.OnErrorRaise += Connector_OnErrorRaise;
-            var book = new BookStore.Models.Book()
-            {
-                Title = "Война и мир",
+                Title = "Обитаемый остров",
+                CategoryID = 1,
                 Price = 300,
-                Authors = new Authors() { AuthorID = 1 }
+                Authors = new List<Author>()
+                {
+                    new Author() { ID = 1 },
+                    new Author() { ID = 2 }
+                }
             };
 
-            connector.CreateItem(book);
+            bookConnector.CreateItem(book);
 
 
             Console.ReadKey();
