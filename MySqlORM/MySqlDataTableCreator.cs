@@ -24,11 +24,7 @@ namespace MySqlORM
         {
             var dataRow = dataTable.NewRow();
             foreach (var propInfo in dataProps)
-            {
                 dataRow[propInfo.Name] = propInfo.GetValue(item);
-                Console.WriteLine(propInfo.Name);
-                Console.WriteLine(dataRow[propInfo.Name]);
-            }
             dataTable.Rows.Add(dataRow);
         }
 

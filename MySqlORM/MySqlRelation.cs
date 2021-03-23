@@ -33,42 +33,47 @@ namespace MySqlORM
 
         public void CreateItemsFor(object item)
         {
-            var relatedItems = RelationProperty(item);            
+            var relatedItems = RelationProperty(item);
             foreach (var relItem in relatedItems)
-            {
-                var itemToStore =
-                    entityType != item.GetType() ?
-                    Activator.CreateInstance(entityType) :
-                    relItem;
-                var itemsWithValues = new object[] { item, relItem };
-                SetValuesForEntity(itemToStore, itemsWithValues);
-                itemsToInsert.Add(itemToStore);
-            }
-            itemsTable = MySqlDataTableCreator.Create(itemsToInsert, 
-                entityType);
-
-            foreach (DataRow r in itemsTable.Rows)
-            {
-                Console.WriteLine($" {r["ID"]} {r["AuthorID"]} {r["BookID"]}");
-            }
-
+                CreateItemFor(item, relItem, itemsToInsert);
+             itemsTable = MySqlDataTableCreator
+                .Create(itemsToInsert,entityType);
             Execute();
+        }
+
+        void CreateItemFor(object item, object relItem, List<object> items)
+        {
+            var itemToStore =
+                entityType != item.GetType() ?
+                Activator.CreateInstance(entityType) :
+                relItem;
+            var itemsWithValues = new object[] { item, relItem };
+            SetValuesForEntity(itemToStore, itemsWithValues);
+            items.Add(itemToStore);
         }
 
         void SetValuesForEntity(object itemToStore, object[] itemsWithValues)
         {
-            foreach (var propName in entityPropsNames)
-            {
-                var valueSource = TargetSourcePropsMap[propName];
-                var valSrcSegments = valueSource.Split('.');
-                var itemWithValues =
-                    valSrcSegments[0] == "PARENT" ?
-                    itemsWithValues[0] : itemsWithValues[1];
-                var valueProp = 
-                    itemWithValues.GetType().GetProperty(valSrcSegments[1]);
-                var value = valueProp.GetValue(itemWithValues);
-                entityType.GetProperty(propName).SetValue(itemToStore, value);
-            }
+            foreach (var propName in entityPropsNames) SetValueForEntity(
+                itemToStore,
+                itemsWithValues,
+                propName);
+        }
+
+        void SetValueForEntity(object target, object[] source, string propName)
+        {
+            object value =
+                TargetSourcePropsMap.ContainsKey(propName) ?
+                GetValueFromParent(source[0], propName) :
+                source[1].GetType().GetProperty(propName).GetValue(source[1]);
+            entityType.GetProperty(propName).SetValue(target, value);
+        }
+
+        object GetValueFromParent(object parent, string propName)
+        {
+            var valueSourcePropName = TargetSourcePropsMap[propName];
+            var valueProp = parent.GetType().GetProperty(valueSourcePropName);
+            return valueProp.GetValue(parent);
         }
 
         protected void Execute()
@@ -80,7 +85,15 @@ namespace MySqlORM
         protected override void OnConnect(MySqlCommand command)
         {
             var dataAdapter = new MySqlDataAdapter();
-            dataAdapter.InsertCommand = command; 
+            dataAdapter.InsertCommand = command;
+            //dataAdapter.SelectCommand = new MySqlCommand()
+            //{ CommandText = $"SELECT ID FROM {TableName}" };
+            //dataAdapter.SelectCommand.Parameters.Add(new MySqlParameter()
+            //{                
+            //    MySqlDbType = MySqlDbType.Int32,
+            //    ParameterName = "ID",
+            //    SourceColumn = "ID"
+            //});
             dataAdapter.Update(itemsTable);
         }
     }

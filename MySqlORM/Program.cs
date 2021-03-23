@@ -23,6 +23,16 @@ namespace MySqlORM
         };
 
 
+        static MySqlRelation oiConnector = new MySqlRelation(typeof(OrderItem))
+        {
+            TableName = "order_items"
+        };
+        static MySqlInsertConnector orderConnector = new MySqlInsertConnector(typeof(Order))
+        {
+            TableName = "orders"
+        };
+
+
         static void Main(string[] args)
         {
             MySqlConnectorBase.ConnectionString = 
@@ -32,24 +42,39 @@ namespace MySqlORM
             MySqlConnectorBase.OnErrorRaise += Connector_OnErrorRaise;
 
             abConnector.RelationProperty = (b) => { return ((Book)b).Authors; };
-            abConnector.TargetSourcePropsMap.Add("AuthorID", "FOREIGN.ID");
-            abConnector.TargetSourcePropsMap.Add("BookID", "PARENT.ID");
+            abConnector.TargetSourcePropsMap.Add("BookID", "ID");
             bookConnector.Relations.Add(abConnector);
 
-            var book = new Book()
+            oiConnector.RelationProperty = (o) => { return ((Order)o).Items; };
+            oiConnector.TargetSourcePropsMap.Add("OrderID", "ID");
+            orderConnector.Relations.Add(oiConnector);
+
+            //var book = new Book()
+            //{
+            //    Title = "Обитаемый остров",
+            //    CategoryID = 1,
+            //    Price = 300,
+            //    Authors = new List<Author>()
+            //    {
+            //        new Author() { ID = 1 },
+            //        new Author() { ID = 2 }
+            //    }
+            //};
+
+            //bookConnector.CreateItem(book);
+
+            var order = new Order()
             {
-                Title = "Обитаемый остров",
-                CategoryID = 1,
-                Price = 300,
-                Authors = new List<Author>()
+                BuyerName = "John Smith",
+                Address = "NY City,  Wall Street",
+                Items = new List<OrderItem>()
                 {
-                    new Author() { ID = 1 },
-                    new Author() { ID = 2 }
+                    new OrderItem() { BookID = 9, Quantity = 1 },
+                    new OrderItem() { BookID = 10, Quantity = 1 },
+                    new OrderItem() { BookID = 11, Quantity = 1 },
                 }
             };
-
-            bookConnector.CreateItem(book);
-
+            orderConnector.CreateItem(order);
 
             Console.ReadKey();
         }

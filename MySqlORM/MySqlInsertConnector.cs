@@ -35,6 +35,11 @@ namespace MySqlORM
             }
         }
 
+        public void CreateItems(IEnumerable<object> items)
+        {
+
+        }
+
         protected override void OnConnect(MySqlCommand command)
         {
             itemID = int.Parse(command.ExecuteScalar().ToString());

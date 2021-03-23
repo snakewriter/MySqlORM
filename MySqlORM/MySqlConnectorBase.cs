@@ -98,7 +98,8 @@ namespace MySqlORM
                     .PropertyType;
             var parameter = new MySqlParameter()
             {
-                ParameterName = '?' + propName,
+                ParameterName = '@' + propName,
+                SourceColumn = propName,
                 MySqlDbType = netDbTypesMap[propType]
             };
             if (item != null)
